@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mobile Gamepad</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+  body {
+    margin: 0;
+    background: #111;
+    color: white;
+    font-family: sans-serif;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  .gamepad {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 10px;
+    box-sizing: border-box;
+    justify-content: space-between;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .button, .dpad-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #333;
+    color: white;
+    font-size: 20px;
+    border: 2px solid #666;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  }
+
+  .button:active, .dpad-btn:active {
+    background: #666;
+  }
+
+  .dpad {
+    display: grid;
+    grid-template-areas:
+      ".    up     ."
+      "left center right"
+      ".   down    .";
+    gap: 10px;
+  }
+
+  .dpad-btn {
+    width: 50px;
+    height: 50px;
+  }
+
+  .btn-group {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="gamepad">
+  <div class="row">
+    <div class="button" data-key="coin">Coin</div>
+    <div class="button" data-key="start">Start</div>
+  </div>
+
+  <div class="row">
+    <div class="dpad">
+      <div class="dpad-btn" style="grid-area: up;" data-key="up">↑</div>
+      <div class="dpad-btn" style="grid-area: down;" data-key="down">↓</div>
+      <div class="dpad-btn" style="grid-area: left;" data-key="left">←</div>
+      <div class="dpad-btn" style="grid-area: right;" data-key="right">→</div>
+      <div style="grid-area: center;"></div>
+    </div>
+
+    <div class="btn-group">
+      <div class="button" data-key="x" style="color:#4af;">X</div>
+      <div class="button" data-key="y" style="color:#fc3;">Y</div>
+      <div class="button" data-key="a" style="color:#6f6;">A</div>
+      <div class="button" data-key="b" style="color:#f66;">B</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ws = new WebSocket("ws://192.168.1.197:9000"); // ← 반드시 PC IP로 변경
+
+function send(key, action) {
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(`${key}_${action}`);
+  }
+}
+
+function bindEvents(el, key) {
+  const start = () => send(key, "start");
+  const end = () => send(key, "end");
+
+  el.addEventListener("touchstart", e => { e.preventDefault(); start(); });
+  el.addEventListener("touchend", e => { e.preventDefault(); end(); });
+  el.addEventListener("mousedown", start);
+  el.addEventListener("mouseup", end);
+  el.addEventListener("mouseleave", end);
+}
+
+document.querySelectorAll("[data-key]").forEach(el => {
+  const key = el.dataset.key;
+  bindEvents(el, key);
+});
+</script>
+</body>
+</html>
